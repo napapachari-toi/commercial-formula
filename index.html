@@ -228,7 +228,18 @@ tr:hover td{background:#f8fafc}
   <!-- Product Select -->
   <div class="card">
     <div class="card-head"><span class="card-title">เลือกผลิตภัณฑ์</span></div>
-    <div class="card-body" id="brand-sections"></div>
+    <div class="card-body">
+      <div class="form-row c2" style="margin-bottom:8px">
+        <div class="fg">
+          <label>กลุ่มผลิตภัณฑ์</label>
+          <select id="dd-group" onchange="updateProductDropdown()"></select>
+        </div>
+        <div class="fg">
+          <label>ผลิตภัณฑ์</label>
+          <select id="dd-product" onchange="selProduct(this.value)"></select>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Product Info -->
@@ -353,77 +364,29 @@ tr:hover td{background:#f8fafc}
     </div>
   </div>
 
-  <!-- GOOGLE SHEETS SYNC -->
   <div class="card">
-    <div class="card-head"><span class="card-title">🟢 Google Sheets Sync</span></div>
+    <div class="card-head" style="justify-content:space-between">
+      <span class="card-title">จัดการผลิตภัณฑ์</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal()">+ เพิ่มผลิตภัณฑ์</button>
+    </div>
     <div class="card-body">
-      <div class="pwd-section" style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Web App URL (Google Apps Script)</div>
-        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">
-          วาง URL ของ Google Apps Script Web App ที่นี่<br>
-          <span style="color:var(--primary);cursor:pointer;text-decoration:underline" onclick="showSheetsGuide()">📖 ดูคู่มือตั้งค่า Google Sheets</span>
-        </div>
-        <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/xxx/exec"
-          style="font-size:11px;margin-bottom:8px" oninput="saveSheetsUrl()">
-        <div id="sheets-status" style="font-size:11px;color:var(--text3);margin-bottom:8px">— ยังไม่ได้เชื่อมต่อ</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-success btn-block" onclick="pullFromSheets()">⬇️ ดึงจาก Sheets</button>
-          <button class="btn btn-primary btn-block" onclick="pushToSheets()">⬆️ ส่งขึ้น Sheets</button>
-        </div>
-        <div style="margin-top:8px">
-          <button class="btn btn-outline btn-block" onclick="testSheetsConnection()" style="font-size:11px">🔌 ทดสอบการเชื่อมต่อ</button>
-        </div>
-      </div>
+      <div class="admin-tabs" id="admin-filter-tabs"></div>
+      <div class="product-list" id="product-list"></div>
+    </div>
+  </div>
 
-      <!-- SHEETS GUIDE (hidden by default) -->
-      <div id="sheets-guide" style="display:none;background:#f0f7ff;border:1px solid #b3d9f7;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;font-size:12px;line-height:1.8;color:var(--text)">
-        <div style="font-weight:700;color:var(--primary);margin-bottom:10px">📋 คู่มือตั้งค่า Google Sheets (ทำครั้งเดียว)</div>
-
-        <div style="margin-bottom:8px"><b>ขั้นที่ 1:</b> สร้าง Google Sheets ใหม่ แล้วตั้งชื่อ Sheet ว่า <code style="background:#e8f4fd;padding:1px 5px;border-radius:3px">Products</code></div>
-        <div style="margin-bottom:8px"><b>ขั้นที่ 2:</b> ไปที่เมนู <b>Extensions → Apps Script</b></div>
-        <div style="margin-bottom:8px"><b>ขั้นที่ 3:</b> ลบโค้ดเดิมทิ้ง แล้ววางโค้ดด้านล่างแทน:</div>
-        <div style="background:#1a2332;color:#7dd3fc;padding:10px;border-radius:6px;font-size:10px;font-family:monospace;line-height:1.6;margin-bottom:8px;overflow-x:auto;white-space:pre">function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0];
-  var rows = data.slice(1).map(function(row) {
-    var obj = {};
-    headers.forEach(function(h, i) { obj[h] = row[i]; });
-    return obj;
-  });
-  return ContentService
-    .createTextOutput(JSON.stringify({status:'ok',data:rows}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var payload = JSON.parse(e.postData.contents);
-  sheet.clearContents();
-  if(payload.data && payload.data.length > 0) {
-    var headers = Object.keys(payload.data[0]);
-    sheet.appendRow(headers);
-    payload.data.forEach(function(row) {
-      sheet.appendRow(headers.map(function(h){ return row[h]||''; }));
-    });
-  }
-  return ContentService
-    .createTextOutput(JSON.stringify({status:'ok'}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</div>
-        <div style="margin-bottom:8px"><b>ขั้นที่ 4:</b> กด <b>Deploy → New deployment</b></div>
-        <div style="margin-bottom:8px"><b>ขั้นที่ 5:</b> เลือก Type: <b>Web app</b> → Execute as: <b>Me</b> → Who has access: <b>Anyone</b> → กด Deploy</div>
-        <div style="margin-bottom:8px"><b>ขั้นที่ 6:</b> Copy URL ที่ได้ วางในช่องด้านบน</div>
-        <div style="background:#e8f5e9;border-radius:4px;padding:6px 10px;font-size:11px;color:#1b5e20">
-          ✅ หลังตั้งค่าแล้ว กด "ส่งขึ้น Sheets" ครั้งแรกเพื่ออัปโหลดข้อมูลปัจจุบัน จากนั้นทุกอุปกรณ์กด "ดึงจาก Sheets" เพื่อรับข้อมูลล่าสุดได้เลย
+  <div class="card">
+    <div class="card-head"><span class="card-title">จัดการข้อมูล</span></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:#1b5e20;margin-bottom:4px">🚀 อัปเดต GitHub — วิธีที่แนะนำ</div>
+          <div style="font-size:11px;color:#2e7d32;margin-bottom:8px;line-height:1.6">ดาวน์โหลดไฟล์ HTML ที่มีข้อมูล+รูปทั้งหมดฝังอยู่ครบ แล้วอัปโหลดขึ้น GitHub แทนไฟล์เดิม ทุกอุปกรณ์จะได้รับข้อมูลล่าสุดทันที</div>
+          <button class="btn btn-success btn-block" style="font-size:13px;padding:12px" onclick="downloadHTMLWithData()">⬇️ ดาวน์โหลด index.html พร้อมข้อมูลทั้งหมด</button>
         </div>
-        <button class="btn btn-sm btn-outline" style="margin-top:8px" onclick="hideSheetsGuide()">ปิดคู่มือ</button>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-        <button class="btn btn-outline btn-block" onclick="exportData()">📥 ส่งออกข้อมูล (JSON)</button>
+        <button class="btn btn-outline btn-block" onclick="exportData()">📥 ส่งออกข้อมูล JSON (สำรองข้อมูล)</button>
         <label class="btn btn-outline btn-block" style="cursor:pointer">
-          📤 นำเข้าข้อมูล (JSON)
+          📤 นำเข้าข้อมูล JSON
           <input type="file" accept=".json" style="display:none" onchange="importData(this)">
         </label>
         <button class="btn btn-sm" style="background:#fff3e0;color:var(--warning);border:1.5px solid var(--warning)" onclick="resetToDefault()">🔄 รีเซ็ตเป็นข้อมูลเริ่มต้น</button>
@@ -830,42 +793,42 @@ function showPage(p){
 }
 
 // ============ BUILD CALC UI ============
-function buildBrandSections(){
-  const container = document.getElementById('brand-sections');
-  container.innerHTML='';
+function buildDropdowns(){
+  const ddGroup = document.getElementById('dd-group');
   const groups = {};
   products.forEach(p=>{
     if(!groups[p.gr]) groups[p.gr]=[];
     groups[p.gr].push(p);
   });
-  Object.entries(groups).forEach(([gr,prods])=>{
-    const section = document.createElement('div');
-    section.className='brand-section';
-    const label = document.createElement('div');
-    label.className='brand-label';
-    label.textContent=GRP_LABELS[gr]||gr;
-    section.appendChild(label);
-    const chips = document.createElement('div');
-    chips.className='chips';
-    prods.forEach(p=>{
-      const chip = document.createElement('div');
-      chip.className='chip';
-      chip.id='chip-'+p.id;
-      chip.textContent=p.n;
-      chip.onclick=()=>selProduct(p.id);
-      chips.appendChild(chip);
-    });
-    section.appendChild(chips);
-    container.appendChild(section);
-  });
+  ddGroup.innerHTML = Object.keys(groups).map(gr=>
+    `<option value="${gr}">${GRP_LABELS[gr]||gr}</option>`
+  ).join('');
+  updateProductDropdown();
+}
+
+function updateProductDropdown(){
+  const gr = document.getElementById('dd-group').value;
+  const ddProd = document.getElementById('dd-product');
+  const filtered = products.filter(p=>p.gr===gr);
+  ddProd.innerHTML = filtered.map(p=>
+    `<option value="${p.id}">${p.n}</option>`
+  ).join('');
+  if(filtered.length>0) selProduct(filtered[0].id);
+  else {
+    document.getElementById('sv-box').style.display='none';
+    document.getElementById('info-box').style.display='none';
+    document.getElementById('result-card').style.display='none';
+    document.getElementById('no-product-card').style.display='block';
+  }
 }
 
 function selProduct(id){
+  if(!id) return;
   cur=id;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on-blue','on-green','on-amber','on-red','on-purple'));
+  // sync dropdown
+  const ddProd = document.getElementById('dd-product');
+  if(ddProd && ddProd.value !== id) ddProd.value = id;
   const p=getP(id); if(!p) return;
-  const chip=document.getElementById('chip-'+id);
-  if(chip) chip.classList.add('on-'+p.br);
   // Serving box
   const svBox=document.getElementById('sv-box');
   const svRow=document.getElementById('sv-row');
@@ -1091,7 +1054,7 @@ function renderAdmin(){
       </div>
     `).join('');
   }
-  renderSheetsUrl();
+  buildDropdowns();
 }
 
 function setAdminFilter(g){ adminFilter=g; renderAdmin(); }
@@ -1172,7 +1135,7 @@ function saveProduct(){
     products.push(prod);
   }
   saveProducts();
-  buildBrandSections();
+  buildDropdowns();
   renderAdmin();
   closeModal();
   showToast(editId?'✅ อัปเดตข้อมูลแล้ว':'✅ เพิ่มผลิตภัณฑ์แล้ว');
@@ -1184,9 +1147,34 @@ function deleteProduct(id){
   if(!confirm('ยืนยันการลบผลิตภัณฑ์นี้?')) return;
   products=products.filter(p=>p.id!==id);
   saveProducts();
-  buildBrandSections();
+  buildDropdowns();
   renderAdmin();
   showToast('🗑️ ลบผลิตภัณฑ์แล้ว');
+}
+
+// ============ DOWNLOAD HTML WITH EMBEDDED DATA ============
+function downloadHTMLWithData(){
+  showToast('⏳ กำลังสร้างไฟล์...');
+  try {
+    // Get current HTML
+    const html = document.documentElement.outerHTML;
+    // Replace DEFAULT_PRODUCTS with current products (including images)
+    const productsJSON = JSON.stringify(products, null, 2);
+    const newHtml = html.replace(
+      /const DEFAULT_PRODUCTS = \[[\s\S]*?\];/,
+      `const DEFAULT_PRODUCTS = ${productsJSON};`
+    );
+    // Download
+    const blob = new Blob([newHtml], {type:'text/html;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('✅ ดาวน์โหลดสำเร็จ! อัปโหลดขึ้น GitHub ได้เลย');
+  } catch(e) {
+    showToast('❌ เกิดข้อผิดพลาด: '+e.message);
+  }
 }
 
 // ============ EXPORT / IMPORT ============
@@ -1208,7 +1196,7 @@ function importData(input){
       if(!Array.isArray(data)) throw new Error('Invalid format');
       products=data;
       saveProducts();
-      buildBrandSections();
+      buildDropdowns();
       renderAdmin();
       showToast('📤 นำเข้าข้อมูลแล้ว '+data.length+' รายการ');
     } catch(err){ showToast('❌ ไฟล์ไม่ถูกต้อง'); }
@@ -1221,7 +1209,7 @@ function resetToDefault(){
   if(!confirm('รีเซ็ตข้อมูลทั้งหมดเป็นค่าเริ่มต้น? การแก้ไขทั้งหมดจะหายไป')) return;
   products=JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
   saveProducts();
-  buildBrandSections();
+  buildDropdowns();
   renderAdmin();
   showToast('🔄 รีเซ็ตเรียบร้อย');
 }
@@ -1283,7 +1271,7 @@ async function pullFromSheets(){
         return p;
       });
       saveProducts();
-      buildBrandSections();
+      buildDropdowns();
       renderAdmin();
       updateSheetsStatus('✅ ดึงข้อมูลสำเร็จ '+products.length+' รายการ — '+new Date().toLocaleTimeString('th-TH'),'var(--success)');
       showToast('✅ ดึงข้อมูลจาก Sheets แล้ว '+products.length+' รายการ');
@@ -1338,7 +1326,7 @@ async function autoSyncOnLoad(){
         return p;
       });
       saveProducts();
-      buildBrandSections();
+      buildDropdowns();
       showToast('🔄 อัปเดตข้อมูลจาก Sheets อัตโนมัติ');
     }
   } catch(e){ /* silent fail — use local data */ }
@@ -1353,8 +1341,7 @@ function showToast(msg){
 
 // ============ INIT ============
 loadProducts();
-buildBrandSections();
-autoSyncOnLoad();
+buildDropdowns();
 </script>
 </body>
 </html>
