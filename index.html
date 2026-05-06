@@ -173,6 +173,21 @@ tr:hover td{background:#f8fafc}
 .empty-icon{font-size:36px;margin-bottom:8px}
 .empty-text{font-size:13px}
 
+/* LOCK SCREEN */
+.lock-screen{display:none;position:fixed;inset:0;background:rgba(15,76,117,0.92);z-index:150;align-items:center;justify-content:center;padding:20px}
+.lock-screen.on{display:flex}
+.lock-box{background:#fff;border-radius:var(--radius);padding:28px 24px;width:100%;max-width:340px;text-align:center}
+.lock-icon{font-size:36px;margin-bottom:10px}
+.lock-title{font-size:17px;font-weight:700;color:var(--primary);margin-bottom:4px}
+.lock-sub{font-size:12px;color:var(--text2);margin-bottom:20px}
+.lock-input{width:100%;height:44px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:4px;font-family:inherit;color:var(--text);margin-bottom:4px;transition:border-color .2s}
+.lock-input:focus{outline:none;border-color:var(--accent)}
+.lock-input.error{border-color:var(--danger);animation:shake .3s}
+.lock-error{font-size:11px;color:var(--danger);margin-bottom:10px;min-height:16px;margin-top:4px}
+.lock-hint{font-size:10px;color:var(--text3);margin-top:12px}
+.lock-badge{display:inline-block;background:#e8f4fd;color:var(--primary);border-radius:12px;font-size:10px;font-weight:700;padding:2px 10px;margin-bottom:8px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pwd-section{background:#f8fafc;border-radius:var(--radius-sm);padding:14px;border:1px solid var(--border)}
 /* GUIDE */
 .guide-step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
 .step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -314,9 +329,98 @@ tr:hover td{background:#f8fafc}
   </div>
 
   <div class="card">
-    <div class="card-head"><span class="card-title">จัดการข้อมูล</span></div>
+    <div class="card-head"><span class="card-title">🔒 จัดการรหัสผ่าน Admin</span></div>
     <div class="card-body">
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="pwd-section">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">เปลี่ยนรหัสผ่านสำหรับเข้าหน้าจัดการข้อมูล</div>
+        <div class="form-group">
+          <label>รหัสผ่านปัจจุบัน</label>
+          <input type="password" id="pwd-current" placeholder="รหัสผ่านปัจจุบัน" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</label>
+          <input type="password" id="pwd-new" placeholder="รหัสผ่านใหม่" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>ยืนยันรหัสผ่านใหม่</label>
+          <input type="password" id="pwd-confirm" placeholder="ยืนยันรหัสผ่านใหม่" maxlength="20">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="changePassword()">🔑 เปลี่ยนรหัสผ่าน</button>
+      </div>
+      <div style="margin-top:10px">
+        <button class="btn btn-block" style="background:#fef2f2;color:var(--danger);border:1.5px solid #fca5a5" onclick="adminLogout()">🚪 ออกจากระบบ Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOOGLE SHEETS SYNC -->
+  <div class="card">
+    <div class="card-head"><span class="card-title">🟢 Google Sheets Sync</span></div>
+    <div class="card-body">
+      <div class="pwd-section" style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">Web App URL (Google Apps Script)</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">
+          วาง URL ของ Google Apps Script Web App ที่นี่<br>
+          <span style="color:var(--primary);cursor:pointer;text-decoration:underline" onclick="showSheetsGuide()">📖 ดูคู่มือตั้งค่า Google Sheets</span>
+        </div>
+        <input type="text" id="sheets-url" placeholder="https://script.google.com/macros/s/xxx/exec"
+          style="font-size:11px;margin-bottom:8px" oninput="saveSheetsUrl()">
+        <div id="sheets-status" style="font-size:11px;color:var(--text3);margin-bottom:8px">— ยังไม่ได้เชื่อมต่อ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn btn-success btn-block" onclick="pullFromSheets()">⬇️ ดึงจาก Sheets</button>
+          <button class="btn btn-primary btn-block" onclick="pushToSheets()">⬆️ ส่งขึ้น Sheets</button>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn btn-outline btn-block" onclick="testSheetsConnection()" style="font-size:11px">🔌 ทดสอบการเชื่อมต่อ</button>
+        </div>
+      </div>
+
+      <!-- SHEETS GUIDE (hidden by default) -->
+      <div id="sheets-guide" style="display:none;background:#f0f7ff;border:1px solid #b3d9f7;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;font-size:12px;line-height:1.8;color:var(--text)">
+        <div style="font-weight:700;color:var(--primary);margin-bottom:10px">📋 คู่มือตั้งค่า Google Sheets (ทำครั้งเดียว)</div>
+
+        <div style="margin-bottom:8px"><b>ขั้นที่ 1:</b> สร้าง Google Sheets ใหม่ แล้วตั้งชื่อ Sheet ว่า <code style="background:#e8f4fd;padding:1px 5px;border-radius:3px">Products</code></div>
+        <div style="margin-bottom:8px"><b>ขั้นที่ 2:</b> ไปที่เมนู <b>Extensions → Apps Script</b></div>
+        <div style="margin-bottom:8px"><b>ขั้นที่ 3:</b> ลบโค้ดเดิมทิ้ง แล้ววางโค้ดด้านล่างแทน:</div>
+        <div style="background:#1a2332;color:#7dd3fc;padding:10px;border-radius:6px;font-size:10px;font-family:monospace;line-height:1.6;margin-bottom:8px;overflow-x:auto;white-space:pre">function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var rows = data.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = row[i]; });
+    return obj;
+  });
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok',data:rows}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var payload = JSON.parse(e.postData.contents);
+  sheet.clearContents();
+  if(payload.data && payload.data.length > 0) {
+    var headers = Object.keys(payload.data[0]);
+    sheet.appendRow(headers);
+    payload.data.forEach(function(row) {
+      sheet.appendRow(headers.map(function(h){ return row[h]||''; }));
+    });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+        <div style="margin-bottom:8px"><b>ขั้นที่ 4:</b> กด <b>Deploy → New deployment</b></div>
+        <div style="margin-bottom:8px"><b>ขั้นที่ 5:</b> เลือก Type: <b>Web app</b> → Execute as: <b>Me</b> → Who has access: <b>Anyone</b> → กด Deploy</div>
+        <div style="margin-bottom:8px"><b>ขั้นที่ 6:</b> Copy URL ที่ได้ วางในช่องด้านบน</div>
+        <div style="background:#e8f5e9;border-radius:4px;padding:6px 10px;font-size:11px;color:#1b5e20">
+          ✅ หลังตั้งค่าแล้ว กด "ส่งขึ้น Sheets" ครั้งแรกเพื่ออัปโหลดข้อมูลปัจจุบัน จากนั้นทุกอุปกรณ์กด "ดึงจาก Sheets" เพื่อรับข้อมูลล่าสุดได้เลย
+        </div>
+        <button class="btn btn-sm btn-outline" style="margin-top:8px" onclick="hideSheetsGuide()">ปิดคู่มือ</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
         <button class="btn btn-outline btn-block" onclick="exportData()">📥 ส่งออกข้อมูล (JSON)</button>
         <label class="btn btn-outline btn-block" style="cursor:pointer">
           📤 นำเข้าข้อมูล (JSON)
@@ -520,6 +624,21 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- LOCK SCREEN -->
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-badge">Admin Only</div>
+    <div class="lock-title">หน้าจัดการข้อมูล</div>
+    <div class="lock-sub">กรอกรหัสผ่านเพื่อเข้าถึงหน้า Admin</div>
+    <input type="password" class="lock-input" id="lock-input" placeholder="รหัสผ่าน" maxlength="20"
+      oninput="clearLockError()" onkeydown="if(event.key==='Enter')checkPassword()">
+    <div class="lock-error" id="lock-error"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:4px" onclick="checkPassword()">เข้าสู่ระบบ Admin</button>
+    <div class="lock-hint">รหัสผ่านเริ่มต้น: <b>admin1234</b> — เปลี่ยนได้ในหน้า Admin</div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -588,8 +707,65 @@ function saveProducts(){
 }
 function getP(id){ return products.find(p=>p.id===id); }
 
+// ============ PASSWORD SYSTEM ============
+const DEFAULT_PASSWORD = 'admin1234';
+let adminUnlocked = false;
+
+function getPassword(){
+  return localStorage.getItem('admin_password') || DEFAULT_PASSWORD;
+}
+
+function checkPassword(){
+  const input = document.getElementById('lock-input');
+  const val = input.value.trim();
+  if(val === getPassword()){
+    adminUnlocked = true;
+    document.getElementById('lock-screen').classList.remove('on');
+    document.getElementById('lock-input').value = '';
+    renderAdmin();
+  } else {
+    input.classList.add('error');
+    document.getElementById('lock-error').textContent = 'รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
+    setTimeout(()=>input.classList.remove('error'), 400);
+    input.select();
+  }
+}
+
+function clearLockError(){
+  document.getElementById('lock-error').textContent = '';
+  document.getElementById('lock-input').classList.remove('error');
+}
+
+function changePassword(){
+  const cur = document.getElementById('pwd-current').value;
+  const nw  = document.getElementById('pwd-new').value;
+  const cfm = document.getElementById('pwd-confirm').value;
+  if(cur !== getPassword()){ showToast('❌ รหัสผ่านปัจจุบันไม่ถูกต้อง'); return; }
+  if(nw.length < 6){ showToast('❌ รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if(nw !== cfm){ showToast('❌ รหัสผ่านใหม่ไม่ตรงกัน'); return; }
+  localStorage.setItem('admin_password', nw);
+  document.getElementById('pwd-current').value = '';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  showToast('✅ เปลี่ยนรหัสผ่านเรียบร้อย');
+}
+
+function adminLogout(){
+  adminUnlocked = false;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('page-calc').classList.add('on');
+  document.querySelector('.nav-tab').classList.add('on');
+  showToast('👋 ออกจากระบบ Admin แล้ว');
+}
+
 // ============ NAV ============
 function showPage(p){
+  if(p === 'admin' && !adminUnlocked){
+    document.getElementById('lock-screen').classList.add('on');
+    setTimeout(()=>document.getElementById('lock-input').focus(), 100);
+    return;
+  }
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
   document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('on'));
   document.getElementById('page-'+p).classList.add('on');
@@ -830,20 +1006,21 @@ function renderAdmin(){
   const filtered = adminFilter==='all' ? products : products.filter(p=>p.gr===adminFilter);
   if(filtered.length===0){
     list.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">ไม่มีผลิตภัณฑ์ในกลุ่มนี้</div></div>';
-    return;
+  } else {
+    list.innerHTML = filtered.map(p=>`
+      <div class="product-item">
+        <div>
+          <div class="pi-name">${p.n}</div>
+          <div class="pi-brand">${GRP_LABELS[p.gr]||p.gr} | ${p.t==='pwd'?'ผงชง':'ชนิดน้ำ'} | ${p.kcal} kcal/serving</div>
+        </div>
+        <div class="pi-btns">
+          <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')">✏️ แก้ไข</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑</button>
+        </div>
+      </div>
+    `).join('');
   }
-  list.innerHTML = filtered.map(p=>`
-    <div class="product-item">
-      <div>
-        <div class="pi-name">${p.n}</div>
-        <div class="pi-brand">${GRP_LABELS[p.gr]||p.gr} | ${p.t==='pwd'?'ผงชง':'ชนิดน้ำ'} | ${p.kcal} kcal/serving</div>
-      </div>
-      <div class="pi-btns">
-        <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')">✏️ แก้ไข</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑</button>
-      </div>
-    </div>
-  `).join('');
+  renderSheetsUrl();
 }
 
 function setAdminFilter(g){ adminFilter=g; renderAdmin(); }
@@ -974,6 +1151,124 @@ function resetToDefault(){
   showToast('🔄 รีเซ็ตเรียบร้อย');
 }
 
+// ============ GOOGLE SHEETS ============
+function getSheetsUrl(){
+  return localStorage.getItem('sheets_url')||'';
+}
+function saveSheetsUrl(){
+  const url=document.getElementById('sheets-url').value.trim();
+  localStorage.setItem('sheets_url',url);
+  updateSheetsStatus('— URL บันทึกแล้ว ยังไม่ได้ทดสอบ','var(--text3)');
+}
+function updateSheetsStatus(msg,color){
+  const el=document.getElementById('sheets-status');
+  if(el){el.textContent=msg;el.style.color=color||'var(--text3)';}
+}
+function showSheetsGuide(){ document.getElementById('sheets-guide').style.display='block'; }
+function hideSheetsGuide(){ document.getElementById('sheets-guide').style.display='none'; }
+
+function renderSheetsUrl(){
+  const el=document.getElementById('sheets-url');
+  if(el) el.value=getSheetsUrl();
+}
+
+async function testSheetsConnection(){
+  const url=getSheetsUrl();
+  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
+  updateSheetsStatus('⏳ กำลังทดสอบ...','var(--text2)');
+  try{
+    const res=await fetch(url+'?action=test',{method:'GET'});
+    const json=await res.json();
+    if(json.status==='ok'){
+      updateSheetsStatus('✅ เชื่อมต่อสำเร็จ! พร้อมใช้งาน','var(--success)');
+      showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ');
+    } else {
+      updateSheetsStatus('⚠️ เชื่อมต่อได้แต่มีข้อผิดพลาด: '+JSON.stringify(json),'var(--warning)');
+    }
+  } catch(e){
+    updateSheetsStatus('❌ เชื่อมต่อไม่ได้ — ตรวจสอบ URL และ Deploy settings','var(--danger)');
+    showToast('❌ เชื่อมต่อไม่ได้ ดูคู่มือตั้งค่า');
+  }
+}
+
+async function pullFromSheets(){
+  const url=getSheetsUrl();
+  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
+  updateSheetsStatus('⏳ กำลังดึงข้อมูลจาก Sheets...','var(--text2)');
+  showToast('⏳ กำลังดึงข้อมูล...');
+  try{
+    const res=await fetch(url,{method:'GET'});
+    const json=await res.json();
+    if(json.status==='ok'&&Array.isArray(json.data)&&json.data.length>0){
+      // Convert string numbers back to numbers
+      const numFields=['sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph','std_conc'];
+      products=json.data.map(row=>{
+        const p={...row};
+        numFields.forEach(f=>{ if(p[f]!==undefined&&p[f]!=='') p[f]=parseFloat(p[f])||0; });
+        return p;
+      });
+      saveProducts();
+      buildBrandSections();
+      renderAdmin();
+      updateSheetsStatus('✅ ดึงข้อมูลสำเร็จ '+products.length+' รายการ — '+new Date().toLocaleTimeString('th-TH'),'var(--success)');
+      showToast('✅ ดึงข้อมูลจาก Sheets แล้ว '+products.length+' รายการ');
+    } else {
+      updateSheetsStatus('⚠️ ไม่พบข้อมูลใน Sheets หรือยังไม่ได้ upload','var(--warning)');
+      showToast('⚠️ ไม่พบข้อมูลใน Sheets');
+    }
+  } catch(e){
+    updateSheetsStatus('❌ ดึงข้อมูลไม่ได้: '+e.message,'var(--danger)');
+    showToast('❌ ดึงข้อมูลไม่ได้');
+  }
+}
+
+async function pushToSheets(){
+  const url=getSheetsUrl();
+  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
+  if(!confirm('ส่งข้อมูลปัจจุบัน ('+products.length+' รายการ) ขึ้น Google Sheets?\nข้อมูลเดิมใน Sheets จะถูกแทนที่')) return;
+  updateSheetsStatus('⏳ กำลังส่งข้อมูลขึ้น Sheets...','var(--text2)');
+  showToast('⏳ กำลังส่งข้อมูล...');
+  try{
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({data:products})
+    });
+    const json=await res.json();
+    if(json.status==='ok'){
+      updateSheetsStatus('✅ ส่งข้อมูลสำเร็จ '+products.length+' รายการ — '+new Date().toLocaleTimeString('th-TH'),'var(--success)');
+      showToast('✅ ส่งข้อมูลขึ้น Sheets แล้ว '+products.length+' รายการ');
+    } else {
+      updateSheetsStatus('⚠️ ส่งข้อมูลแต่มีข้อผิดพลาด','var(--warning)');
+      showToast('⚠️ ส่งข้อมูลมีปัญหา');
+    }
+  } catch(e){
+    updateSheetsStatus('❌ ส่งข้อมูลไม่ได้: '+e.message,'var(--danger)');
+    showToast('❌ ส่งข้อมูลไม่ได้');
+  }
+}
+
+// Auto-pull from Sheets on load if URL is set
+async function autoSyncOnLoad(){
+  const url=getSheetsUrl();
+  if(!url) return;
+  try{
+    const res=await fetch(url,{method:'GET'});
+    const json=await res.json();
+    if(json.status==='ok'&&Array.isArray(json.data)&&json.data.length>0){
+      const numFields=['sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph','std_conc'];
+      products=json.data.map(row=>{
+        const p={...row};
+        numFields.forEach(f=>{ if(p[f]!==undefined&&p[f]!=='') p[f]=parseFloat(p[f])||0; });
+        return p;
+      });
+      saveProducts();
+      buildBrandSections();
+      showToast('🔄 อัปเดตข้อมูลจาก Sheets อัตโนมัติ');
+    }
+  } catch(e){ /* silent fail — use local data */ }
+}
+
 // ============ TOAST ============
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -984,6 +1279,7 @@ function showToast(msg){
 // ============ INIT ============
 loadProducts();
 buildBrandSections();
+autoSyncOnLoad();
 </script>
 </body>
 </html>
