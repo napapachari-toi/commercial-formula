@@ -523,6 +523,22 @@ function doPost(e) {
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-id">
+
+      <div class="section-divider">รูปผลิตภัณฑ์</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div id="img-preview" style="width:72px;height:72px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden">
+          📦
+        </div>
+        <div style="flex:1">
+          <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;color:var(--text2);background:#f8fafc;transition:border-color .2s" id="img-label">
+            📷 อัปโหลดรูปผลิตภัณฑ์
+            <input type="file" id="f-img" accept="image/*" style="display:none" onchange="previewImage(this)">
+          </label>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">JPG, PNG ขนาดไม่เกิน 2MB — รูปจะถูกบันทึกในแอปอัตโนมัติ</div>
+          <button id="img-clear-btn" onclick="clearImage()" style="display:none;margin-top:4px;padding:3px 10px;font-size:11px;border:1px solid var(--danger);border-radius:var(--radius-sm);background:#fff;color:var(--danger);cursor:pointer">🗑 ลบรูป</button>
+        </div>
+      </div>
+
       <div class="section-divider">ข้อมูลทั่วไป</div>
       <div class="form-group">
         <label>ชื่อผลิตภัณฑ์ *</label>
@@ -707,6 +723,46 @@ function saveProducts(){
 }
 function getP(id){ return products.find(p=>p.id===id); }
 
+// ============ IMAGE FUNCTIONS ============
+let currentImgBase64 = '';
+
+function previewImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024){ showToast('❌ รูปใหญ่เกิน 2MB'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImgBase64 = e.target.result;
+    const prev = document.getElementById('img-preview');
+    prev.innerHTML = `<img src="${currentImgBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+    document.getElementById('img-clear-btn').style.display = 'block';
+    document.getElementById('img-label').style.borderColor = 'var(--success)';
+    showToast('✅ โหลดรูปแล้ว');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(){
+  currentImgBase64 = '';
+  document.getElementById('img-preview').innerHTML = '📦';
+  document.getElementById('img-clear-btn').style.display = 'none';
+  document.getElementById('img-label').style.borderColor = 'var(--border)';
+  document.getElementById('f-img').value = '';
+}
+
+function setImgPreview(base64){
+  const prev = document.getElementById('img-preview');
+  if(base64){
+    prev.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+    document.getElementById('img-clear-btn').style.display = 'block';
+    document.getElementById('img-label').style.borderColor = 'var(--success)';
+  } else {
+    prev.innerHTML = '📦';
+    document.getElementById('img-clear-btn').style.display = 'none';
+    document.getElementById('img-label').style.borderColor = 'var(--border)';
+  }
+}
+
 // ============ PASSWORD SYSTEM ============
 const DEFAULT_PASSWORD = 'admin1234';
 let adminUnlocked = false;
@@ -814,15 +870,30 @@ function selProduct(id){
   const svBox=document.getElementById('sv-box');
   const svRow=document.getElementById('sv-row');
   svBox.className='sv-box '+(p.br||'blue');
+  const imgHtml = p.img ? `<img src="${p.img}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(0,0,0,0.1);flex-shrink:0">` : '';
   if(p.t==='pwd'&&p.g>0){
     svBox.style.display='block';
     svRow.innerHTML=`
-      <div class="sv-item">ช้อน/serving: <b>${p.sc>0?p.sc:'1ซอง'}</b></div>
-      <div class="sv-item">ผง: <b>${p.g}g</b></div>
-      ${p.vol>0?`<div class="sv-item">ปริมาตร: <b>${p.vol}ml</b></div>`:''}
-      <div class="sv-item">พลังงาน: <b>${p.kcal}kcal</b></div>
-      <div class="sv-item">โปรตีน: <b>${p.prot}g</b></div>
-      ${p.sc>0?`<div class="sv-item">g/ช้อน: <b>${(p.g/p.sc).toFixed(2)}g</b></div>`:''}
+      ${imgHtml}
+      <div style="flex:1;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start">
+        <div class="sv-item">ช้อน/serving: <b>${p.sc>0?p.sc:'1ซอง'}</b></div>
+        <div class="sv-item">ผง: <b>${p.g}g</b></div>
+        ${p.vol>0?`<div class="sv-item">ปริมาตร: <b>${p.vol}ml</b></div>`:''}
+        <div class="sv-item">พลังงาน: <b>${p.kcal}kcal</b></div>
+        <div class="sv-item">โปรตีน: <b>${p.prot}g</b></div>
+        ${p.sc>0?`<div class="sv-item">g/ช้อน: <b>${(p.g/p.sc).toFixed(2)}g</b></div>`:''}
+      </div>
+    `;
+  } else if(p.t==='liq'){
+    svBox.style.display='block';
+    svRow.innerHTML=`
+      ${imgHtml}
+      <div style="flex:1;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start">
+        <div class="sv-item">ชนิด: <b>RTD / ชนิดน้ำ</b></div>
+        <div class="sv-item">พลังงาน: <b>${p.kcal} kcal/100ml</b></div>
+        <div class="sv-item">โปรตีน: <b>${p.prot}g/100ml</b></div>
+        <div class="sv-item">ความเข้มข้น: <b>${p.std_conc} kcal/ml</b></div>
+      </div>
     `;
   } else { svBox.style.display='none'; }
   // Info box
@@ -1029,7 +1100,7 @@ function setAdminFilter(g){ adminFilter=g; renderAdmin(); }
 function openModal(id=null){
   document.getElementById('edit-id').value = id||'';
   document.getElementById('modal-title').textContent = id?'แก้ไขผลิตภัณฑ์':'เพิ่มผลิตภัณฑ์';
-  const fields = ['name','brand','group','type','stdconc','sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph','indic','note'];
+  currentImgBase64 = '';
   if(id){
     const p=getP(id); if(!p) return;
     document.getElementById('f-name').value=p.n;
@@ -1050,6 +1121,8 @@ function openModal(id=null){
     document.getElementById('f-ph').value=p.ph||0;
     document.getElementById('f-indic').value=p.indic||'';
     document.getElementById('f-note').value=p.note||'';
+    currentImgBase64 = p.img||'';
+    setImgPreview(currentImgBase64);
   } else {
     document.getElementById('f-name').value='';
     document.getElementById('f-brand').value='blue';
@@ -1059,6 +1132,7 @@ function openModal(id=null){
     ['sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph'].forEach(f=>document.getElementById('f-'+f).value=0);
     document.getElementById('f-indic').value='';
     document.getElementById('f-note').value='';
+    setImgPreview('');
   }
   document.getElementById('modal').classList.add('on');
 }
@@ -1089,6 +1163,7 @@ function saveProduct(){
     ph: parseFloat(document.getElementById('f-ph').value)||0,
     indic: document.getElementById('f-indic').value.trim(),
     note: document.getElementById('f-note').value.trim(),
+    img: currentImgBase64||'',
   };
   if(editId){
     const idx=products.findIndex(p=>p.id===editId);
