@@ -81,6 +81,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 .form-row{display:grid;gap:8px;margin-bottom:10px}
 .form-row.c2{grid-template-columns:1fr 1fr}
 .form-row.c3{grid-template-columns:1fr 1fr 1fr}
+.form-row.c4{grid-template-columns:1fr 1fr 1fr 1fr}
 .fg{display:flex;flex-direction:column;gap:4px}
 .fg label{font-size:11px;color:var(--text2);font-weight:500}
 input[type=number],select{height:36px;padding:0 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#fff;color:var(--text);font-size:13px;width:100%;font-family:inherit;transition:border-color .2s}
@@ -94,6 +95,17 @@ input.big{height:44px;font-size:18px;font-weight:700;color:var(--primary)}
 .preset{padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-weight:600;transition:all .15s}
 .preset.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .conc-hint{font-size:10px;color:var(--text3);margin-top:4px}
+
+/* ===== SUMMARY BOX ===== */
+.summary-box{background:linear-gradient(135deg,#0f4c75 0%,#1b6ca8 100%);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;color:#fff}
+.summary-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.7);margin-bottom:10px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.summary-item{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 10px;border:1px solid rgba(255,255,255,0.15)}
+.summary-label{font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:2px}
+.summary-val{font-size:17px;font-weight:700;color:#fff;line-height:1.2}
+.summary-unit{font-size:10px;color:rgba(255,255,255,0.6);margin-top:1px}
+.summary-item.accent{background:rgba(0,180,216,0.25);border-color:rgba(0,180,216,0.5)}
+.summary-item.accent .summary-val{color:#7dd3fc}
 
 /* RESULTS */
 .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px;margin-bottom:10px}
@@ -128,6 +140,11 @@ tr:hover td{background:#f8fafc}
 /* WARN/NOTE */
 .warnbox{font-size:11px;color:var(--warning);margin-top:8px;line-height:1.6;background:#fff8f0;border-radius:var(--radius-sm);padding:8px 10px;border-left:3px solid var(--warning);display:none}
 .notebox{font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5}
+
+/* MODE TOGGLE */
+.mode-row{display:flex;gap:6px;margin-bottom:10px}
+.mode-btn{flex:1;padding:7px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:all .2s;text-align:center}
+.mode-btn.on{background:var(--primary);color:#fff;border-color:var(--primary)}
 
 /* ADMIN */
 .admin-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
@@ -194,7 +211,6 @@ tr:hover td{background:#f8fafc}
 .step-body{flex:1}
 .step-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
 .step-desc{font-size:12px;color:var(--text2);line-height:1.6}
-.step-code{background:#1a2332;color:#7dd3fc;padding:8px 12px;border-radius:var(--radius-sm);font-size:11px;margin-top:6px;font-family:monospace;line-height:1.6}
 .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase}
 .badge-blue{background:#e3f2fd;color:#1565c0}
 .badge-green{background:#e8f5e9;color:#1b5e20}
@@ -203,6 +219,7 @@ tr:hover td{background:#f8fafc}
 
 @media(max-width:480px){
   .form-row.c3{grid-template-columns:1fr 1fr}
+  .form-row.c4{grid-template-columns:1fr 1fr}
   .result-grid{grid-template-columns:repeat(2,1fr)}
   .nav-brand{font-size:13px;padding:0 10px}
 }
@@ -249,10 +266,11 @@ tr:hover td{background:#f8fafc}
   </div>
   <div id="info-box" class="info-box"></div>
 
-  <!-- Concentration -->
+  <!-- Concentration + Requirements -->
   <div class="card">
-    <div class="card-head"><span class="card-title">ความเข้มข้นที่แพทย์สั่ง</span></div>
+    <div class="card-head"><span class="card-title">กำหนดค่าการให้อาหาร</span></div>
     <div class="card-body">
+      <!-- Concentration -->
       <div class="conc-panel">
         <div class="conc-row">
           <span style="font-size:12px;color:var(--text2)">ความเข้มข้น:</span>
@@ -270,19 +288,50 @@ tr:hover td{background:#f8fafc}
         <div class="conc-hint" id="conc-hint">—</div>
       </div>
 
-      <!-- Patient Requirements -->
-      <div class="form-row c3">
-        <div class="fg">
-          <label>พลังงาน (kcal/วัน)</label>
-          <input type="number" id="req-kcal" class="big" value="1500" min="200" max="4000" step="50" oninput="calc()">
+      <!-- Input Mode Toggle -->
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:6px">โหมดการคำนวณ</div>
+      <div class="mode-row" style="margin-bottom:12px">
+        <div class="mode-btn on" id="mode-btn-kcal" onclick="setMode('kcal')">🔥 กำหนดพลังงาน/วัน</div>
+        <div class="mode-btn" id="mode-btn-vol" onclick="setMode('vol')">🧪 กำหนดปริมาตร/มื้อ</div>
+      </div>
+
+      <!-- Mode: kcal/day -->
+      <div id="input-mode-kcal">
+        <div class="form-row c3">
+          <div class="fg">
+            <label>พลังงาน (kcal/วัน)</label>
+            <input type="number" id="req-kcal" class="big" value="1500" min="200" max="4000" step="50" oninput="calc()">
+          </div>
+          <div class="fg">
+            <label>โปรตีน (g/วัน) 0=ไม่ระบุ</label>
+            <input type="number" id="req-prot" value="60" min="0" max="300" step="5" oninput="calc()">
+          </div>
+          <div class="fg">
+            <label>จำนวนมื้อ/วัน</label>
+            <input type="number" id="req-meals" value="4" min="1" max="12" oninput="calc()">
+          </div>
         </div>
-        <div class="fg">
-          <label>โปรตีน (g/วัน) 0=ไม่ระบุ</label>
-          <input type="number" id="req-prot" value="60" min="0" max="300" step="5" oninput="calc()">
-        </div>
-        <div class="fg">
-          <label>จำนวนมื้อ/วัน</label>
-          <input type="number" id="req-meals" value="4" min="1" max="12" oninput="calc()">
+      </div>
+
+      <!-- Mode: vol/meal -->
+      <div id="input-mode-vol" style="display:none">
+        <div class="form-row c4">
+          <div class="fg">
+            <label>ปริมาตร/มื้อ (ml)</label>
+            <input type="number" id="req-vol" class="big" value="250" min="50" max="1000" step="10" oninput="calc()">
+          </div>
+          <div class="fg">
+            <label>จำนวนมื้อ/วัน</label>
+            <input type="number" id="req-meals2" value="4" min="1" max="12" oninput="calc()">
+          </div>
+          <div class="fg">
+            <label>โปรตีน (g/วัน) 0=ไม่ระบุ</label>
+            <input type="number" id="req-prot2" value="60" min="0" max="300" step="5" oninput="calc()">
+          </div>
+          <div class="fg">
+            <label>พลังงาน (kcal/วัน) คำนวณอัตโนมัติ</label>
+            <input type="number" id="disp-kcal-auto" class="big" readonly style="background:#f8fafc;color:var(--success);font-weight:700">
+          </div>
         </div>
       </div>
     </div>
@@ -292,6 +341,13 @@ tr:hover td{background:#f8fafc}
   <div class="card" id="result-card" style="display:none">
     <div class="card-head"><span class="card-title">ผลการคำนวณ</span></div>
     <div class="card-body">
+
+      <!-- SUMMARY BOX -->
+      <div class="summary-box" id="summary-box">
+        <div class="summary-title">📊 สรุปการให้อาหาร</div>
+        <div class="summary-grid" id="summary-grid"></div>
+      </div>
+
       <div class="prog-row">
         <div class="prog-box">
           <div class="prog-label">พลังงาน/วัน</div>
@@ -361,17 +417,6 @@ tr:hover td{background:#f8fafc}
       <div style="margin-top:10px">
         <button class="btn btn-block" style="background:#fef2f2;color:var(--danger);border:1.5px solid #fca5a5" onclick="adminLogout()">🚪 ออกจากระบบ Admin</button>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head" style="justify-content:space-between">
-      <span class="card-title">จัดการผลิตภัณฑ์</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal()">+ เพิ่มผลิตภัณฑ์</button>
-    </div>
-    <div class="card-body">
-      <div class="admin-tabs" id="admin-filter-tabs"></div>
-      <div class="product-list" id="product-list"></div>
     </div>
   </div>
 
@@ -497,7 +542,7 @@ tr:hover td{background:#f8fafc}
             📷 อัปโหลดรูปผลิตภัณฑ์
             <input type="file" id="f-img" accept="image/*" style="display:none" onchange="previewImage(this)">
           </label>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px">JPG, PNG ขนาดไม่เกิน 2MB — รูปจะถูกบันทึกในแอปอัตโนมัติ</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">JPG, PNG ขนาดไม่เกิน 2MB</div>
           <button id="img-clear-btn" onclick="clearImage()" style="display:none;margin-top:4px;padding:3px 10px;font-size:11px;border:1px solid var(--danger);border-radius:var(--radius-sm);background:#fff;color:var(--danger);cursor:pointer">🗑 ลบรูป</button>
         </div>
       </div>
@@ -676,15 +721,30 @@ const PRESETS_VAL = [0.5,1.0,1.2,1.5,2.0,2.5];
 let products = [];
 let cur = null;
 let adminFilter = 'all';
+let calcMode = 'kcal'; // 'kcal' | 'vol'
 
 function loadProducts(){
   const saved = localStorage.getItem('med_products');
   products = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
 }
-function saveProducts(){
-  localStorage.setItem('med_products', JSON.stringify(products));
-}
+function saveProducts(){ localStorage.setItem('med_products', JSON.stringify(products)); }
 function getP(id){ return products.find(p=>p.id===id); }
+
+// ============ MODE TOGGLE ============
+function setMode(mode){
+  calcMode = mode;
+  document.getElementById('mode-btn-kcal').classList.toggle('on', mode==='kcal');
+  document.getElementById('mode-btn-vol').classList.toggle('on', mode==='vol');
+  document.getElementById('input-mode-kcal').style.display = mode==='kcal' ? '' : 'none';
+  document.getElementById('input-mode-vol').style.display = mode==='vol' ? '' : 'none';
+  // sync meals
+  if(mode==='vol'){
+    document.getElementById('req-meals2').value = document.getElementById('req-meals').value;
+  } else {
+    document.getElementById('req-meals').value = document.getElementById('req-meals2').value;
+  }
+  calc();
+}
 
 // ============ IMAGE FUNCTIONS ============
 let currentImgBase64 = '';
@@ -730,9 +790,7 @@ function setImgPreview(base64){
 const DEFAULT_PASSWORD = 'admin1234';
 let adminUnlocked = false;
 
-function getPassword(){
-  return localStorage.getItem('admin_password') || DEFAULT_PASSWORD;
-}
+function getPassword(){ return localStorage.getItem('admin_password') || DEFAULT_PASSWORD; }
 
 function checkPassword(){
   const input = document.getElementById('lock-input');
@@ -810,9 +868,7 @@ function updateProductDropdown(){
   const gr = document.getElementById('dd-group').value;
   const ddProd = document.getElementById('dd-product');
   const filtered = products.filter(p=>p.gr===gr);
-  ddProd.innerHTML = filtered.map(p=>
-    `<option value="${p.id}">${p.n}</option>`
-  ).join('');
+  ddProd.innerHTML = filtered.map(p=>`<option value="${p.id}">${p.n}</option>`).join('');
   if(filtered.length>0) selProduct(filtered[0].id);
   else {
     document.getElementById('sv-box').style.display='none';
@@ -825,7 +881,6 @@ function updateProductDropdown(){
 function selProduct(id){
   if(!id) return;
   cur=id;
-  // sync dropdown
   const ddProd = document.getElementById('dd-product');
   if(ddProd && ddProd.value !== id) ddProd.value = id;
   const p=getP(id); if(!p) return;
@@ -887,46 +942,115 @@ function syncPreset(){
   });
 }
 
-// ============ CALC ============
+// ============ HELPERS ============
 function f(v,d=1){return(isNaN(v)||!isFinite(v))?'—':parseFloat(v.toFixed(d)).toLocaleString('th-TH');}
 function pct(g,t){if(!t||t<=0)return'—';return Math.round(g/t*100)+'%';}
 function fp(g,t){if(!t||t<=0)return 0;return Math.min(100,Math.round(g/t*100));}
 
+// ============ SUMMARY BOX ============
+function renderSummary(volPerMeal, meals, conc, kcalPerDay, volPerDay){
+  const sg = document.getElementById('summary-grid');
+  sg.innerHTML = `
+    <div class="summary-item accent">
+      <div class="summary-label">ปริมาตร/มื้อ</div>
+      <div class="summary-val">${f(volPerMeal,0)}</div>
+      <div class="summary-unit">ml/มื้อ</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">จำนวนมื้อ/วัน</div>
+      <div class="summary-val">${meals}</div>
+      <div class="summary-unit">มื้อ</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">ความเข้มข้น</div>
+      <div class="summary-val">${f(conc,1)}</div>
+      <div class="summary-unit">kcal/ml</div>
+    </div>
+    <div class="summary-item accent">
+      <div class="summary-label">พลังงาน/วัน</div>
+      <div class="summary-val">${f(kcalPerDay,0)}</div>
+      <div class="summary-unit">kcal/วัน</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">ปริมาตรรวม/วัน</div>
+      <div class="summary-val">${f(volPerDay,0)}</div>
+      <div class="summary-unit">ml/วัน</div>
+    </div>
+  `;
+}
+
+// ============ CALC ============
 function calc(){
   if(!cur) return;
   const p=getP(cur); if(!p) return;
-  const reqK=+document.getElementById('req-kcal').value||1500;
-  const reqP=+document.getElementById('req-prot').value||0;
-  const meals=+document.getElementById('req-meals').value||4;
-  const userConc=parseFloat(document.getElementById('conc').value)||1.0;
+
+  // Get inputs based on mode
+  let reqK, reqP, meals, mlPerMeal, mlPerDay;
+  const userConc = parseFloat(document.getElementById('conc').value)||1.0;
+
+  if(calcMode === 'vol'){
+    mlPerMeal = +document.getElementById('req-vol').value || 250;
+    meals = +document.getElementById('req-meals2').value || 4;
+    reqP = +document.getElementById('req-prot2').value || 0;
+    mlPerDay = mlPerMeal * meals;
+    reqK = mlPerDay * userConc;
+    // Show auto kcal
+    const dispKcal = document.getElementById('disp-kcal-auto');
+    if(dispKcal) dispKcal.value = Math.round(reqK);
+    // Sync req-meals for other mode
+    document.getElementById('req-meals').value = meals;
+  } else {
+    reqK = +document.getElementById('req-kcal').value || 1500;
+    reqP = +document.getElementById('req-prot').value || 0;
+    meals = +document.getElementById('req-meals').value || 4;
+    mlPerDay = reqK / userConc;
+    mlPerMeal = mlPerDay / meals;
+    // Sync req-meals2 for other mode
+    document.getElementById('req-meals2').value = meals;
+  }
+
   const cards=document.getElementById('cards');
   const tbody=document.getElementById('tbody');
+  let warnText='';
 
-  let warnText='', noteText='';
+  // Render summary
+  renderSummary(mlPerMeal, meals, userConc, reqK, mlPerDay);
 
   if(p.t==='pwd'){
-    const kcalPerG=p.kcal/p.g;
-    const gPerMl=userConc/kcalPerG;
-    const mlPerDay=reqK/userConc;
-    const mlPerMeal=mlPerDay/meals;
-    const gPerMeal=gPerMl*mlPerMeal;
-    const gPerDay=gPerMl*mlPerDay;
-    const scPerMeal=p.sc>0?gPerMeal/(p.g/p.sc):0;
-    const scPerDay=p.sc>0?gPerDay/(p.g/p.sc):0;
-    const waterPerMeal=Math.max(mlPerMeal-gPerMeal*0.72,0);
-    const ratioD=gPerDay/p.g, ratioM=gPerMeal/p.g;
-    const gotD={kcal:p.kcal*ratioD,prot:p.prot*ratioD,cho:p.cho*ratioD,fat:p.fat*ratioD,fb:(p.fb||0)*ratioD,na:(p.na||0)*ratioD,k:(p.k||0)*ratioD,ph:(p.ph||0)*ratioD};
+    // ==== POWDER CALCULATION ====
+    // kcal per gram of powder
+    const kcalPerG = p.kcal / p.g;
+    // grams of powder needed per ml of final solution at userConc
+    // userConc (kcal/ml) = kcalPerG * gPerMl
+    // BUT powder volume ≈ 0.72ml/g (displacement), so:
+    // mlPerMeal = gPerMeal * 0.72 + waterPerMeal
+    // kcalPerMeal = gPerMeal * kcalPerG = mlPerMeal * userConc
+    // => gPerMeal = mlPerMeal * userConc / kcalPerG
+    const gPerMeal = mlPerMeal * userConc / kcalPerG;
+    const gPerDay = gPerMeal * meals;
+    // Water = total volume - powder displacement (0.72ml/g)
+    const waterPerMeal = Math.max(mlPerMeal - gPerMeal * 0.72, 0);
+    const waterPerDay = waterPerMeal * meals;
+
+    const scPerMeal = p.sc > 0 ? gPerMeal / (p.g / p.sc) : 0;
+    const scPerDay = scPerMeal * meals;
+    // Rounded spoon
+    const scR = p.sc > 0 ? Math.round(scPerMeal * 2) / 2 : 0;
+    const gR = scR > 0 && p.sc > 0 ? scR * (p.g / p.sc) : gPerMeal;
+    const kcalR = gR * kcalPerG;
+    const waterR = Math.max(mlPerMeal - gR * 0.72, 0);
+
+    // Nutrition per meal/day
+    const ratioM = gPerMeal / p.g;
+    const ratioD = gPerDay / p.g;
     const gotM={kcal:p.kcal*ratioM,prot:p.prot*ratioM,cho:p.cho*ratioM,fat:p.fat*ratioM,fb:(p.fb||0)*ratioM,na:(p.na||0)*ratioM,k:(p.k||0)*ratioM,ph:(p.ph||0)*ratioM};
+    const gotD={kcal:p.kcal*ratioD,prot:p.prot*ratioD,cho:p.cho*ratioD,fat:p.fat*ratioD,fb:(p.fb||0)*ratioD,na:(p.na||0)*ratioD,k:(p.k||0)*ratioD,ph:(p.ph||0)*ratioD};
 
-    const scR=p.sc>0?Math.round(scPerMeal*2)/2:0;
-    const gR=scR>0&&p.sc>0?scR*(p.g/p.sc):gPerMeal;
-    const kcalR=gR*kcalPerG;
+    document.getElementById('conc-hint').textContent=`${userConc} kcal/ml → ผง ${f(gPerMeal,1)}g + น้ำ ${f(waterPerMeal,0)}ml = ${f(mlPerMeal,0)}ml/มื้อ | มาตรฐาน: ${p.std_conc} kcal/ml`;
 
-    document.getElementById('conc-hint').textContent=`ความเข้มข้น ${userConc} kcal/ml → ใช้ผง ${f(gPerMl,3)} g/ml | มาตรฐาน: ${p.std_conc} kcal/ml`;
-
-    // Progress
+    // Progress bars
     const kp=fp(gotD.kcal,reqK);
-    document.getElementById('bkv').textContent=`${f(gotD.kcal,0)} / ${reqK} kcal`;
+    document.getElementById('bkv').textContent=`${f(gotD.kcal,0)} / ${Math.round(reqK)} kcal`;
     const kf=document.getElementById('bkf'); kf.style.width=kp+'%'; kf.className='prog-fill'+(kp>=95&&kp<=105?' ok':kp>110?' warn':'');
     if(reqP>0){const pp=fp(gotD.prot,reqP);document.getElementById('bpv').textContent=`${f(gotD.prot,1)} / ${reqP} g`;const pf=document.getElementById('bpf');pf.style.width=pp+'%';pf.className='prog-fill'+(pp>=85?' ok':' warn');}
     else{document.getElementById('bpv').textContent=`${f(gotD.prot,1)} g`;document.getElementById('bpf').style.width='0%';}
@@ -936,8 +1060,8 @@ function calc(){
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1565c0;margin-bottom:8px">📋 ต่อมื้อ (${meals} มื้อ/วัน)</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
           <div><div style="font-size:10px;color:#5a6a7e">ผงที่ใช้</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${f(gPerMeal,1)}</div><div style="font-size:10px;color:#5a6a7e">g/มื้อ</div></div>
-          <div><div style="font-size:10px;color:#5a6a7e">${p.sc>0?'ช้อนตวง (แม่นยำ)':'ซอง/มื้อ'}</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${p.sc>0?f(scPerMeal,2):f(mlPerMeal/(p.vol||250),2)}</div><div style="font-size:10px;color:#5a6a7e">${p.sc>0?'ช้อน':'ซอง'}</div></div>
-          ${p.sc>0?`<div><div style="font-size:10px;color:#e65100;font-weight:600">ปัดเป็น</div><div style="font-size:18px;font-weight:700;color:#e65100">${f(scR,1)}</div><div style="font-size:10px;color:#e65100">ช้อน (${f(gR,0)}g)</div></div>`:''}
+          ${p.sc>0?`<div><div style="font-size:10px;color:#5a6a7e">ช้อนตวง</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${f(scPerMeal,2)}</div><div style="font-size:10px;color:#5a6a7e">ช้อน</div></div>
+          <div><div style="font-size:10px;color:#e65100;font-weight:600">ปัดช้อน</div><div style="font-size:18px;font-weight:700;color:#e65100">${f(scR,1)}</div><div style="font-size:10px;color:#e65100">ช้อน (${f(gR,0)}g)</div></div>`:''}
           <div><div style="font-size:10px;color:#5a6a7e">น้ำที่เติม</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${f(waterPerMeal,0)}</div><div style="font-size:10px;color:#5a6a7e">ml/มื้อ</div></div>
           <div><div style="font-size:10px;color:#5a6a7e">ปริมาตรสุดท้าย</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${f(mlPerMeal,0)}</div><div style="font-size:10px;color:#5a6a7e">ml/มื้อ</div></div>
           <div><div style="font-size:10px;color:#5a6a7e">พลังงาน</div><div style="font-size:18px;font-weight:700;color:#0f4c75">${f(gotM.kcal,0)}</div><div style="font-size:10px;color:#5a6a7e">kcal/มื้อ</div></div>
@@ -948,8 +1072,8 @@ function calc(){
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1b5e20;margin-bottom:8px">📊 รวมทั้งวัน</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px">
           <div><div style="font-size:10px;color:#5a6a7e">ผงรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(gPerDay,1)}</div><div style="font-size:10px;color:#5a6a7e">g/วัน</div></div>
-          <div><div style="font-size:10px;color:#5a6a7e">${p.sc>0?'ช้อนรวม':'ซองรวม'}</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${p.sc>0?f(scPerDay,1):f(mlPerDay/(p.vol||250),1)}</div><div style="font-size:10px;color:#5a6a7e">${p.sc>0?'ช้อน/วัน':'ซอง/วัน'}</div></div>
-          <div><div style="font-size:10px;color:#5a6a7e">น้ำรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(waterPerMeal*meals,0)}</div><div style="font-size:10px;color:#5a6a7e">ml/วัน</div></div>
+          ${p.sc>0?`<div><div style="font-size:10px;color:#5a6a7e">ช้อนรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(scPerDay,1)}</div><div style="font-size:10px;color:#5a6a7e">ช้อน/วัน</div></div>`:''}
+          <div><div style="font-size:10px;color:#5a6a7e">น้ำรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(waterPerDay,0)}</div><div style="font-size:10px;color:#5a6a7e">ml/วัน</div></div>
           <div><div style="font-size:10px;color:#5a6a7e">ปริมาตรรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(mlPerDay,0)}</div><div style="font-size:10px;color:#5a6a7e">ml/วัน</div></div>
           <div><div style="font-size:10px;color:#5a6a7e">พลังงานรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(gotD.kcal,0)}</div><div style="font-size:10px;color:#5a6a7e">kcal/วัน</div></div>
           <div><div style="font-size:10px;color:#5a6a7e">โปรตีนรวม</div><div style="font-size:18px;font-weight:700;color:#1b5e20">${f(gotD.prot,1)}</div><div style="font-size:10px;color:#5a6a7e">g/วัน</div></div>
@@ -957,7 +1081,7 @@ function calc(){
       </div>
     `;
     tbody.innerHTML=[
-      ['พลังงาน (kcal)',f(gotM.kcal,0),f(gotD.kcal,0),reqK,pct(gotD.kcal,reqK)],
+      ['พลังงาน (kcal)',f(gotM.kcal,0),f(gotD.kcal,0),Math.round(reqK),pct(gotD.kcal,reqK)],
       ['โปรตีน (g)',f(gotM.prot,1),f(gotD.prot,1),reqP>0?reqP:'—',reqP>0?pct(gotD.prot,reqP):'—'],
       ['คาร์โบไฮเดรต (g)',f(gotM.cho,1),f(gotD.cho,1),'—','—'],
       ['ไขมัน (g)',f(gotM.fat,1),f(gotD.fat,1),'—','—'],
@@ -966,24 +1090,40 @@ function calc(){
       ['โพแทสเซียม (mg)',f(gotM.k,0),f(gotD.k,0),'—','—'],
       ['ฟอสฟอรัส (mg)',f(gotM.ph,0),f(gotD.ph,0),'—','—'],
       ['ผง (g)',f(gPerMeal,1),f(gPerDay,1),'—','—'],
-      [p.sc>0?'ช้อนตวง':'ซอง',p.sc>0?f(scPerMeal,2):f(mlPerMeal/p.vol,2),p.sc>0?f(scPerDay,1):f(mlPerDay/p.vol,1),'—','—'],
-      ['น้ำที่เติม (ml)',f(waterPerMeal,0),f(waterPerMeal*meals,0),'—','—'],
+      ...(p.sc>0?[['ช้อนตวง',f(scPerMeal,2),f(scPerDay,1),'—','—']]:[] ),
+      ['น้ำที่เติม (ml)',f(waterPerMeal,0),f(waterPerDay,0),'—','—'],
+      ['ปริมาตร (ml)',f(mlPerMeal,0),f(mlPerDay,0),'—','—'],
     ].map(r=>`<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td class="gr">${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
 
     if(userConc>p.std_conc*1.5&&p.std_conc>0) warnText+='⚠️ ความเข้มข้นสูงกว่ามาตรฐานมาก → Osmolarity อาจสูง ระวังท้องเสีย\n';
-    if(p.sc>0&&scPerMeal>0&&Math.abs(scPerMeal-scR)/scPerMeal>0.1) warnText+=`⚠️ ช้อนที่แม่นยำ = ${f(scPerMeal,2)} ช้อน → ปัดเป็น ${f(scR,1)} ช้อน (${f(gR,0)}g ≈ ${f(kcalR,0)} kcal/มื้อ)\n`;
+    if(p.sc>0&&scPerMeal>0&&Math.abs(scPerMeal-scR)/scPerMeal>0.1) warnText+=`⚠️ ช้อนที่แม่นยำ = ${f(scPerMeal,2)} ช้อน → ปัดเป็น ${f(scR,1)} ช้อน (${f(gR,0)}g ≈ ${f(kcalR,0)} kcal/มื้อ) น้ำ ${f(waterR,0)}ml\n`;
     if(reqP>0&&gotD.prot<reqP*0.8) warnText+='⚠️ โปรตีนยังต่ำกว่าเป้า → พิจารณาเสริม Fresubin Protein หรือ Boost Beneprotein';
 
   } else {
-    const fixedConc=p.std_conc||1.0;
-    const mlPerDay=reqK/fixedConc, mlPerMeal=mlPerDay/meals;
-    const fac=mlPerDay/100;
+    // ==== LIQUID / RTD CALCULATION ====
+    const fixedConc = p.std_conc || 1.0;
+    // For liquid, volume is determined by concentration
+    if(calcMode === 'kcal'){
+      // reqK is set → derive volume
+      mlPerDay = reqK / fixedConc;
+      mlPerMeal = mlPerDay / meals;
+    } else {
+      // mlPerMeal is fixed → derive kcal
+      mlPerDay = mlPerMeal * meals;
+      reqK = mlPerDay * fixedConc;
+    }
+
+    const fac = mlPerDay / 100;
     const gotD={kcal:p.kcal*fac,prot:p.prot*fac,cho:p.cho*fac,fat:p.fat*fac,fb:(p.fb||0)*fac,na:(p.na||0)*fac,k:(p.k||0)*fac,ph:(p.ph||0)*fac};
     const gotM={kcal:gotD.kcal/meals,prot:gotD.prot/meals,cho:gotD.cho/meals,fat:gotD.fat/meals,fb:gotD.fb/meals,na:gotD.na/meals,k:gotD.k/meals,ph:gotD.ph/meals};
 
-    document.getElementById('conc-hint').textContent=`ผลิตภัณฑ์ชนิดนี้มีความเข้มข้นคงที่ ${fixedConc} kcal/ml ตามสูตรผู้ผลิต`;
+    document.getElementById('conc-hint').textContent=`ผลิตภัณฑ์ชนิดนี้มีความเข้มข้นคงที่ ${fixedConc} kcal/ml | ${f(mlPerMeal,0)}ml/มื้อ × ${meals} มื้อ = ${f(mlPerDay,0)}ml/วัน`;
+
+    // Update summary with actual kcal for liq
+    renderSummary(mlPerMeal, meals, fixedConc, gotD.kcal, mlPerDay);
+
     const kp=fp(gotD.kcal,reqK);
-    document.getElementById('bkv').textContent=`${f(gotD.kcal,0)} / ${reqK} kcal`;
+    document.getElementById('bkv').textContent=`${f(gotD.kcal,0)} / ${Math.round(reqK)} kcal`;
     document.getElementById('bkf').style.width=kp+'%'; document.getElementById('bkf').className='prog-fill ok';
     if(reqP>0){const pp=fp(gotD.prot,reqP);document.getElementById('bpv').textContent=`${f(gotD.prot,1)} / ${reqP} g`;const pf=document.getElementById('bpf');pf.style.width=pp+'%';pf.className='prog-fill'+(pp>=85?' ok':' warn');}
     else{document.getElementById('bpv').textContent=`${f(gotD.prot,1)} g`;document.getElementById('bpf').style.width='0%';}
@@ -1011,7 +1151,7 @@ function calc(){
       </div>
     `;
     tbody.innerHTML=[
-      ['พลังงาน (kcal)',f(gotM.kcal,0),f(gotD.kcal,0),reqK,pct(gotD.kcal,reqK)],
+      ['พลังงาน (kcal)',f(gotM.kcal,0),f(gotD.kcal,0),Math.round(reqK),pct(gotD.kcal,reqK)],
       ['โปรตีน (g)',f(gotM.prot,1),f(gotD.prot,1),reqP>0?reqP:'—',reqP>0?pct(gotD.prot,reqP):'—'],
       ['คาร์โบไฮเดรต (g)',f(gotM.cho,1),f(gotD.cho,1),'—','—'],
       ['ไขมัน (g)',f(gotM.fat,1),f(gotD.fat,1),'—','—'],
@@ -1025,7 +1165,7 @@ function calc(){
 
   const warnEl=document.getElementById('warn');
   warnEl.textContent=warnText.trim(); warnEl.style.display=warnText?'block':'none';
-  document.getElementById('note').textContent='*คำนวณย้อนกลับจากพลังงานที่ต้องการ | ข้อมูลจากฉลากผลิตภัณฑ์จริง | ควรปรับตามสภาพคลินิกและคำแนะนำแพทย์';
+  document.getElementById('note').textContent='*คำนวณย้อนกลับจากพลังงานหรือปริมาตรที่ต้องการ | ข้อมูลจากฉลากผลิตภัณฑ์จริง | ควรปรับตามสภาพคลินิกและคำแนะนำแพทย์';
 }
 
 // ============ ADMIN ============
@@ -1035,7 +1175,6 @@ function renderAdmin(){
   filterTabs.innerHTML = allGroups.map(g=>`
     <div class="admin-tab ${adminFilter===g?'on':''}" onclick="setAdminFilter('${g}')">${g==='all'?'ทั้งหมด':(GRP_LABELS[g]||g)}</div>
   `).join('');
-
   const list = document.getElementById('product-list');
   const filtered = adminFilter==='all' ? products : products.filter(p=>p.gr===adminFilter);
   if(filtered.length===0){
@@ -1156,22 +1295,19 @@ function deleteProduct(id){
 function downloadHTMLWithData(){
   showToast('⏳ กำลังสร้างไฟล์...');
   try {
-    // Get current HTML
     const html = document.documentElement.outerHTML;
-    // Replace DEFAULT_PRODUCTS with current products (including images)
     const productsJSON = JSON.stringify(products, null, 2);
     const newHtml = html.replace(
       /const DEFAULT_PRODUCTS = \[[\s\S]*?\];/,
       `const DEFAULT_PRODUCTS = ${productsJSON};`
     );
-    // Download
     const blob = new Blob([newHtml], {type:'text/html;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'index.html';
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast('✅ ดาวน์โหลดสำเร็จ! อัปโหลดขึ้น GitHub ได้เลย');
+    showToast('✅ ดาวน์โหลดสำเร็จ!');
   } catch(e) {
     showToast('❌ เกิดข้อผิดพลาด: '+e.message);
   }
@@ -1206,130 +1342,12 @@ function importData(input){
 }
 
 function resetToDefault(){
-  if(!confirm('รีเซ็ตข้อมูลทั้งหมดเป็นค่าเริ่มต้น? การแก้ไขทั้งหมดจะหายไป')) return;
+  if(!confirm('รีเซ็ตข้อมูลทั้งหมดเป็นค่าเริ่มต้น?')) return;
   products=JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
   saveProducts();
   buildDropdowns();
   renderAdmin();
   showToast('🔄 รีเซ็ตเรียบร้อย');
-}
-
-// ============ GOOGLE SHEETS ============
-function getSheetsUrl(){
-  return localStorage.getItem('sheets_url')||'';
-}
-function saveSheetsUrl(){
-  const url=document.getElementById('sheets-url').value.trim();
-  localStorage.setItem('sheets_url',url);
-  updateSheetsStatus('— URL บันทึกแล้ว ยังไม่ได้ทดสอบ','var(--text3)');
-}
-function updateSheetsStatus(msg,color){
-  const el=document.getElementById('sheets-status');
-  if(el){el.textContent=msg;el.style.color=color||'var(--text3)';}
-}
-function showSheetsGuide(){ document.getElementById('sheets-guide').style.display='block'; }
-function hideSheetsGuide(){ document.getElementById('sheets-guide').style.display='none'; }
-
-function renderSheetsUrl(){
-  const el=document.getElementById('sheets-url');
-  if(el) el.value=getSheetsUrl();
-}
-
-async function testSheetsConnection(){
-  const url=getSheetsUrl();
-  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
-  updateSheetsStatus('⏳ กำลังทดสอบ...','var(--text2)');
-  try{
-    const res=await fetch(url+'?action=test',{method:'GET'});
-    const json=await res.json();
-    if(json.status==='ok'){
-      updateSheetsStatus('✅ เชื่อมต่อสำเร็จ! พร้อมใช้งาน','var(--success)');
-      showToast('✅ เชื่อมต่อ Google Sheets สำเร็จ');
-    } else {
-      updateSheetsStatus('⚠️ เชื่อมต่อได้แต่มีข้อผิดพลาด: '+JSON.stringify(json),'var(--warning)');
-    }
-  } catch(e){
-    updateSheetsStatus('❌ เชื่อมต่อไม่ได้ — ตรวจสอบ URL และ Deploy settings','var(--danger)');
-    showToast('❌ เชื่อมต่อไม่ได้ ดูคู่มือตั้งค่า');
-  }
-}
-
-async function pullFromSheets(){
-  const url=getSheetsUrl();
-  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
-  updateSheetsStatus('⏳ กำลังดึงข้อมูลจาก Sheets...','var(--text2)');
-  showToast('⏳ กำลังดึงข้อมูล...');
-  try{
-    const res=await fetch(url,{method:'GET'});
-    const json=await res.json();
-    if(json.status==='ok'&&Array.isArray(json.data)&&json.data.length>0){
-      // Convert string numbers back to numbers
-      const numFields=['sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph','std_conc'];
-      products=json.data.map(row=>{
-        const p={...row};
-        numFields.forEach(f=>{ if(p[f]!==undefined&&p[f]!=='') p[f]=parseFloat(p[f])||0; });
-        return p;
-      });
-      saveProducts();
-      buildDropdowns();
-      renderAdmin();
-      updateSheetsStatus('✅ ดึงข้อมูลสำเร็จ '+products.length+' รายการ — '+new Date().toLocaleTimeString('th-TH'),'var(--success)');
-      showToast('✅ ดึงข้อมูลจาก Sheets แล้ว '+products.length+' รายการ');
-    } else {
-      updateSheetsStatus('⚠️ ไม่พบข้อมูลใน Sheets หรือยังไม่ได้ upload','var(--warning)');
-      showToast('⚠️ ไม่พบข้อมูลใน Sheets');
-    }
-  } catch(e){
-    updateSheetsStatus('❌ ดึงข้อมูลไม่ได้: '+e.message,'var(--danger)');
-    showToast('❌ ดึงข้อมูลไม่ได้');
-  }
-}
-
-async function pushToSheets(){
-  const url=getSheetsUrl();
-  if(!url){ showToast('❌ กรุณาใส่ URL ก่อน'); return; }
-  if(!confirm('ส่งข้อมูลปัจจุบัน ('+products.length+' รายการ) ขึ้น Google Sheets?\nข้อมูลเดิมใน Sheets จะถูกแทนที่')) return;
-  updateSheetsStatus('⏳ กำลังส่งข้อมูลขึ้น Sheets...','var(--text2)');
-  showToast('⏳ กำลังส่งข้อมูล...');
-  try{
-    const res=await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({data:products})
-    });
-    const json=await res.json();
-    if(json.status==='ok'){
-      updateSheetsStatus('✅ ส่งข้อมูลสำเร็จ '+products.length+' รายการ — '+new Date().toLocaleTimeString('th-TH'),'var(--success)');
-      showToast('✅ ส่งข้อมูลขึ้น Sheets แล้ว '+products.length+' รายการ');
-    } else {
-      updateSheetsStatus('⚠️ ส่งข้อมูลแต่มีข้อผิดพลาด','var(--warning)');
-      showToast('⚠️ ส่งข้อมูลมีปัญหา');
-    }
-  } catch(e){
-    updateSheetsStatus('❌ ส่งข้อมูลไม่ได้: '+e.message,'var(--danger)');
-    showToast('❌ ส่งข้อมูลไม่ได้');
-  }
-}
-
-// Auto-pull from Sheets on load if URL is set
-async function autoSyncOnLoad(){
-  const url=getSheetsUrl();
-  if(!url) return;
-  try{
-    const res=await fetch(url,{method:'GET'});
-    const json=await res.json();
-    if(json.status==='ok'&&Array.isArray(json.data)&&json.data.length>0){
-      const numFields=['sc','g','vol','kcal','prot','cho','fat','fb','na','k','ph','std_conc'];
-      products=json.data.map(row=>{
-        const p={...row};
-        numFields.forEach(f=>{ if(p[f]!==undefined&&p[f]!=='') p[f]=parseFloat(p[f])||0; });
-        return p;
-      });
-      saveProducts();
-      buildDropdowns();
-      showToast('🔄 อัปเดตข้อมูลจาก Sheets อัตโนมัติ');
-    }
-  } catch(e){ /* silent fail — use local data */ }
 }
 
 // ============ TOAST ============
